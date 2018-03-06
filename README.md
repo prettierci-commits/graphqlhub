@@ -14,18 +14,18 @@ Want to install the various GraphQLHub schemas and use on your own? See [graphql
 
 This powers the server behind [GraphQLHub](http://www.graphqlhub.com/). It's basically:
 
-- The GraphQL Schemas and fetching code for each API
-- A slightly forked version of [GraphiQL](https://github.com/graphql/graphiql)
+* The GraphQL Schemas and fetching code for each API
+* A slightly forked version of [GraphiQL](https://github.com/graphql/graphiql)
 
 > Try the [live app here](https://www.graphqlhub.com/)
 
 ## Schemas
 
-- [Hacker News](graphqlhub-schemas/src/hn.js)
-- [Reddit](graphqlhub-schemas/src/reddit.js)
-- [GitHub](graphqlhub-schemas/src/github.js)
-- [Twitter](graphqlhub-schemas/src/twitter.js)
-- [GraphQLHub](graphqlhub-schemas/src/graphqlhub.js), which contains all the other schemas
+* [Hacker News](graphqlhub-schemas/src/hn.js)
+* [Reddit](graphqlhub-schemas/src/reddit.js)
+* [GitHub](graphqlhub-schemas/src/github.js)
+* [Twitter](graphqlhub-schemas/src/twitter.js)
+* [GraphQLHub](graphqlhub-schemas/src/graphqlhub.js), which contains all the other schemas
 
 ## Quick start
 
@@ -55,9 +55,9 @@ Then visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## TODO
 
-- Better visual design
-- Add more APIs!
-- Extract the schemas into their own repo, so others can easily drop them into their own projects
-- Use GraphiQL from NPM, not the vendoring thing done now
+* Better visual design
+* Add more APIs!
+* Extract the schemas into their own repo, so others can easily drop them into their own projects
+* Use GraphiQL from NPM, not the vendoring thing done now
 
 PRs for anything above would be excellent!

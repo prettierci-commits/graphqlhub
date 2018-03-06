@@ -1,15 +1,14 @@
 // in-memory keyvalue store
 let store = {
-  initialKey : 'initialValue',
+  initialKey: "initialValue"
 };
 
-export const get = (key) => {
+export const get = key => {
   return store[key];
 };
 
-
 export const set = (key, value) => {
-  if (key === 'initialKey') {
+  if (key === "initialKey") {
     return;
   }
   store[key] = value;

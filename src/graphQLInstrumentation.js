@@ -2,24 +2,24 @@
 // http://hueypetersen.com/posts/2015/11/06/instrumenting-graphql-js/
 // https://github.com/graphql/graphql-js/issues/109
 
-import { GraphQLObjectType } from 'graphql';
+import { GraphQLObjectType } from "graphql";
 
 function defaultResolveFn(source, args, { fieldName }) {
   var property = source[fieldName];
-  return typeof property === 'function' ? property.call(source) : property;
-};
+  return typeof property === "function" ? property.call(source) : property;
+}
 
-const wrapPromise = (next) => {
+const wrapPromise = next => {
   return (obj, args, info) => {
     try {
       return Promise.resolve(next(obj, args, info));
     } catch (e) {
       return Promise.reject(e);
     }
-  }
+  };
 };
 
-const withTiming = (next) => {
+const withTiming = next => {
   return (obj, args, info) => {
     const start = new Date().getTime();
     return Promise.resolve(next(obj, args, info)).then(res => {
@@ -31,24 +31,28 @@ const withTiming = (next) => {
       });
       return res;
     });
-  }
-}
+  };
+};
 
 const schemaFieldsForEach = (schema, fn) => {
   Object.keys(schema.getTypeMap())
-    .filter(typeName => typeName.indexOf('__') !== 0) // remove schema fields...
+    .filter(typeName => typeName.indexOf("__") !== 0) // remove schema fields...
     .map(typeName => schema.getType(typeName))
     .filter(type => type instanceof GraphQLObjectType) // make sure its an object
     .forEach(type => {
       let fields = type.getFields();
       Object.keys(fields).forEach(fieldName => {
-        let field = fields[fieldName]
+        let field = fields[fieldName];
         fn(field, type);
       });
     });
 };
 
-export default function graphQLInstrumentation(schema, loggingCallback, { addToResponse } = {}) {
+export default function graphQLInstrumentation(
+  schema,
+  loggingCallback,
+  { addToResponse } = {}
+) {
   schemaFieldsForEach(schema, (field, type) => {
     field.resolve = withTiming(wrapPromise(field.resolve || defaultResolveFn));
   });
@@ -65,10 +69,10 @@ export default function graphQLInstrumentation(schema, loggingCallback, { addToR
       });
       if (addToResponse) {
         // NOTE this is tied to what express-graphql does; changes in future version
-        if (res.get('Content-Type') === 'text/json; charset=utf-8') {
+        if (res.get("Content-Type") === "text/json; charset=utf-8") {
           let jsonString = arguments[0];
           let obj = JSON.parse(jsonString);
-          obj.extensions = { instrumentation : req.rootValue.response };
+          obj.extensions = { instrumentation: req.rootValue.response };
           return _send.apply(res, [JSON.stringify(obj)]);
         }
       }
@@ -76,13 +80,13 @@ export default function graphQLInstrumentation(schema, loggingCallback, { addToR
     };
     // NOTE server.js explicitly uses `req.rootValue`
     req.rootValue = {
-      response : {
-        timing : {
-          duration : undefined,
-          fields   : []
+      response: {
+        timing: {
+          duration: undefined,
+          fields: []
         }
       }
     };
     next();
   };
-};
+}
