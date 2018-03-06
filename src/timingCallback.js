@@ -1,7 +1,7 @@
-import keen from './keen';
+import keen from "./keen";
 
-export default (timings) => {
-  keen.addEvent('totalDurations', { duration : timings.duration });
+export default timings => {
+  keen.addEvent("totalDurations", { duration: timings.duration });
   timings.fields.forEach(({ type, field, args, duration }) => {
     let fieldType = `${type}#${field}`;
     // filter out really fast things (probably just obj.property calls)
@@ -10,4 +10,4 @@ export default (timings) => {
       // keen.addEvent('fieldDurations', { type, field, duration, fieldType });
     }
   });
-}
+};

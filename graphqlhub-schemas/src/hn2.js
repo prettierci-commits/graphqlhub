@@ -6,7 +6,7 @@ import {
   getAskStoryIds,
   getShowStoryIds,
   getJobStoryIds
-} from './apis/hn';
+} from "./apis/hn";
 
 import {
   graphql,
@@ -19,7 +19,7 @@ import {
   GraphQLBoolean,
   GraphQLList,
   GraphQLID
-} from 'graphql';
+} from "graphql";
 
 import {
   nodeDefinitions,
@@ -29,24 +29,26 @@ import {
   connectionDefinitions,
   connectionArgs,
   connectionFromArray
-} from 'graphql-relay';
+} from "graphql-relay";
 
-const itemTypeName = 'item';
+const itemTypeName = "item";
 
 const ConnectionTypes = {};
-const getConnectionType = (nodeType) => {
+const getConnectionType = nodeType => {
   if (!ConnectionTypes[nodeType]) {
-    ConnectionTypes[nodeType] = connectionDefinitions({ nodeType }).connectionType;
+    ConnectionTypes[nodeType] = connectionDefinitions({
+      nodeType
+    }).connectionType;
   }
   return ConnectionTypes[nodeType];
-}
+};
 
 const connectionFromIdsArray = (allIds, args, resolveIds) => {
   let connection = connectionFromArray(allIds || [], args);
-  let ids = connection.edges.map((edge) => edge.node);
+  let ids = connection.edges.map(edge => edge.node);
   let promise = Promise.resolve(resolveIds(ids));
 
-  return promise.then((values) => {
+  return promise.then(values => {
     connection.edges.forEach((edge, index) => {
       edge.node = values[index];
     });
@@ -56,11 +58,11 @@ const connectionFromIdsArray = (allIds, args, resolveIds) => {
 
 const kidsField = () => {
   return {
-    type : getConnectionType(CommentType),
-    description : 'The item\'s comments, in ranked display order.',
-    args : connectionArgs,
-    resolve : (item, args) => {
-      return connectionFromIdsArray(item.kids, args, (ids) => {
+    type: getConnectionType(CommentType),
+    description: "The item's comments, in ranked display order.",
+    args: connectionArgs,
+    resolve: (item, args) => {
+      return connectionFromIdsArray(item.kids, args, ids => {
         return Promise.all(ids.map(getItem));
       });
     }
@@ -69,59 +71,60 @@ const kidsField = () => {
 
 const itemFields = () => {
   return {
-    hnId : {
-      type : new GraphQLNonNull(GraphQLString),
-      description : 'The item\'s unique id.',
-      resolve : (item) => item.id.toString()
+    hnId: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "The item's unique id.",
+      resolve: item => item.id.toString()
     },
     id: globalIdField(itemTypeName),
-    deleted : {
-      type : GraphQLBoolean,
-      description : 'if the item is deleted'
+    deleted: {
+      type: GraphQLBoolean,
+      description: "if the item is deleted"
     },
-    by : {
-      type        : new GraphQLNonNull(UserType),
-      description : 'The item\'s author.',
-      resolve : (item) => {
+    by: {
+      type: new GraphQLNonNull(UserType),
+      description: "The item's author.",
+      resolve: item => {
         return getUser(item.by);
       }
     },
-    time : {
-      type : new GraphQLNonNull(GraphQLInt),
-      description : 'Creation date of the item, in Unix Time.'
+    time: {
+      type: new GraphQLNonNull(GraphQLInt),
+      description: "Creation date of the item, in Unix Time."
     },
-    timeISO : {
-      type : new GraphQLNonNull(GraphQLString),
-      description : 'Creation date of the item, in ISO8601',
-      resolve : (item) => {
+    timeISO: {
+      type: new GraphQLNonNull(GraphQLString),
+      description: "Creation date of the item, in ISO8601",
+      resolve: item => {
         let date = new Date(item.time * 1000);
         return date.toISOString();
       }
     },
-    text : {
-      type : GraphQLString,
-      description : 'The comment, story or poll text. HTML.'
+    text: {
+      type: GraphQLString,
+      description: "The comment, story or poll text. HTML."
     },
-    dead : {
-      type : GraphQLBoolean,
-      description : 'if the item is dead'
+    dead: {
+      type: GraphQLBoolean,
+      description: "if the item is dead"
     },
-    url : {
-      type : GraphQLString,
-      description : 'The URL of the story.'
+    url: {
+      type: GraphQLString,
+      description: "The URL of the story."
     },
-    score : {
-      type : GraphQLInt,
-      description : 'The story\'s score, or the votes for a pollopt.'
+    score: {
+      type: GraphQLInt,
+      description: "The story's score, or the votes for a pollopt."
     },
-    title : {
-      type : GraphQLString,
-      description : 'The title of the story, poll or job.'
+    title: {
+      type: GraphQLString,
+      description: "The title of the story, poll or job."
     },
-    parent : {
-      type : nodeInterface,
-      description : 'The item\'s parent. For comments, either another comment or the relevant story. For pollopts, the relevant poll.',
-      resolve : (item) => {
+    parent: {
+      type: nodeInterface,
+      description:
+        "The item's parent. For comments, either another comment or the relevant story. For pollopts, the relevant poll.",
+      resolve: item => {
         if (!item.parent) {
           return null;
         }
@@ -129,37 +132,39 @@ const itemFields = () => {
       }
     },
 
-    descendants : {
-      type : GraphQLInt,
-      description : 'In the case of stories or polls, the total comment count.'
+    descendants: {
+      type: GraphQLInt,
+      description: "In the case of stories or polls, the total comment count."
     }
   };
-}
+};
 
 const { nodeInterface, nodeField } = nodeDefinitions(
-  (globalId) => {
+  globalId => {
     const { type, id } = fromGlobalId(globalId);
-    if (type === 'HackerNewsV2User') {
+    if (type === "HackerNewsV2User") {
       return getUser(id);
     }
     return getItem(id);
   },
-  (obj) => {
-    if (typeof obj.karma !== 'undefined') {
+  obj => {
+    if (typeof obj.karma !== "undefined") {
       return UserType;
     }
-    return {
-      job: JobType,
-      story: StoryType,
-      comment: CommentType,
-      poll: PollType,
-      pollopt: PollPartType,
-    }[obj.type] || StoryType;
+    return (
+      {
+        job: JobType,
+        story: StoryType,
+        comment: CommentType,
+        poll: PollType,
+        pollopt: PollPartType
+      }[obj.type] || StoryType
+    );
   }
 );
 
 const StoryType = new GraphQLObjectType({
-  name: 'HackerNewsV2Story',
+  name: "HackerNewsV2Story",
   fields: () => ({
     id: itemFields().id,
     hnId: itemFields().hnId,
@@ -173,13 +178,13 @@ const StoryType = new GraphQLObjectType({
     text: itemFields().text,
     kids: kidsField(CommentType),
     deleted: itemFields().deleted,
-    dead: itemFields().dead,
+    dead: itemFields().dead
   }),
   interfaces: [nodeInterface]
 });
 
 const JobType = new GraphQLObjectType({
-  name: 'HackerNewsV2Job',
+  name: "HackerNewsV2Job",
   fields: () => ({
     id: itemFields().id,
     hnId: itemFields().hnId,
@@ -191,13 +196,13 @@ const JobType = new GraphQLObjectType({
     title: itemFields().title,
     url: itemFields().url,
     deleted: itemFields().deleted,
-    dead: itemFields().dead,
+    dead: itemFields().dead
   }),
   interfaces: [nodeInterface]
 });
 
 const PollType = new GraphQLObjectType({
-  name: 'HackerNewsV2Poll',
+  name: "HackerNewsV2Poll",
   fields: () => ({
     id: itemFields().id,
     hnId: itemFields().hnId,
@@ -211,25 +216,25 @@ const PollType = new GraphQLObjectType({
     kids: kidsField(CommentType),
     deleted: itemFields().deleted,
     dead: itemFields().dead,
-    parts : {
-      type : new GraphQLList(PollPartType),
-      description : 'A list of related pollopts, in display order.',
-      resolve : (item) => {
+    parts: {
+      type: new GraphQLList(PollPartType),
+      description: "A list of related pollopts, in display order.",
+      resolve: item => {
         if (!item.parts) {
           return null;
         }
-        let promises = item.parts.map((partId) => {
-          return getItem(partId)
+        let promises = item.parts.map(partId => {
+          return getItem(partId);
         });
         return Promise.all(promises);
       }
-    },
+    }
   }),
   interfaces: [nodeInterface]
 });
 
 const CommentType = new GraphQLObjectType({
-  name: 'HackerNewsV2Comment',
+  name: "HackerNewsV2Comment",
   fields: () => ({
     id: itemFields().id,
     hnId: itemFields().hnId,
@@ -240,13 +245,13 @@ const CommentType = new GraphQLObjectType({
     timeISO: itemFields().timeISO,
     kids: kidsField(CommentType),
     deleted: itemFields().deleted,
-    dead: itemFields().dead,
+    dead: itemFields().dead
   }),
   interfaces: [nodeInterface]
 });
 
 const PollPartType = new GraphQLObjectType({
-  name: 'HackerNewsV2PollPart',
+  name: "HackerNewsV2PollPart",
   fields: () => ({
     id: itemFields().id,
     hnId: itemFields().hnId,
@@ -256,42 +261,43 @@ const PollPartType = new GraphQLObjectType({
     timeISO: itemFields().timeISO,
     text: itemFields().text,
     parent: itemFields().parent,
-    deleted: itemFields().deleted,
+    deleted: itemFields().deleted
   }),
   interfaces: [nodeInterface]
 });
 
 const UserType = new GraphQLObjectType({
-  name: 'HackerNewsV2User',
+  name: "HackerNewsV2User",
   fields: () => ({
     id: globalIdField(),
     hnId: itemFields().hnId,
-    delay : {
-      type : GraphQLInt,
-      description : 'Delay in minutes between a comment\'s creation and its visibility to other users.'
+    delay: {
+      type: GraphQLInt,
+      description:
+        "Delay in minutes between a comment's creation and its visibility to other users."
     },
-    created : {
-      type : GraphQLInt,
-      description : 'Creation date of the user, in Unix Time.'
+    created: {
+      type: GraphQLInt,
+      description: "Creation date of the user, in Unix Time."
     },
-    createdISO : {
-      type : GraphQLString,
-      description : 'Creation date of the user, in ISO8601',
-      resolve : (user) => {
+    createdISO: {
+      type: GraphQLString,
+      description: "Creation date of the user, in ISO8601",
+      resolve: user => {
         let date = new Date(user.created * 1000);
         return date.toISOString();
       }
     },
-    about : {
-      type : GraphQLString,
-      description : 'The user\'s optional self-description. HTML.'
+    about: {
+      type: GraphQLString,
+      description: "The user's optional self-description. HTML."
     },
-    submitted : {
-      type : getConnectionType(nodeInterface),
-      description: 'List of the user\'s stories, polls and comments.',
-      args : connectionArgs,
-      resolve : (user, args) => {
-        return connectionFromIdsArray(user.submitted, args, (ids) => {
+    submitted: {
+      type: getConnectionType(nodeInterface),
+      description: "List of the user's stories, polls and comments.",
+      args: connectionArgs,
+      resolve: (user, args) => {
+        return connectionFromIdsArray(user.submitted, args, ids => {
           return Promise.all(ids.map(getItem));
         });
       }
@@ -300,17 +306,18 @@ const UserType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
-
 let hnType = new GraphQLObjectType({
-  name : 'HackerNewsAPIV2',
-  description : 'The Hacker News V2 API; this is Relay-compatible (uses Nodes and Connections)',
-  fields : {
+  name: "HackerNewsAPIV2",
+  description:
+    "The Hacker News V2 API; this is Relay-compatible (uses Nodes and Connections)",
+  fields: {
     node: nodeField,
 
     nodeFromHnId: {
       type: new GraphQLNonNull(nodeInterface),
-      description: 'To ensure Node IDs are globally unique, GraphQLHub coerces ' +
-      'IDs returned by the HN API. Use this field to get nodes via normal HN IDs',
+      description:
+        "To ensure Node IDs are globally unique, GraphQLHub coerces " +
+        "IDs returned by the HN API. Use this field to get nodes via normal HN IDs",
       args: {
         id: {
           type: new GraphQLNonNull(GraphQLString)

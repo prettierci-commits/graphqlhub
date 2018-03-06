@@ -1,4 +1,4 @@
-require('dotenv/config');
+require("dotenv/config");
 require("babel-register");
 
-module.exports = require('./src/server');
+module.exports = require("./src/server");
